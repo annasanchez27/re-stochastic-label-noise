@@ -31,7 +31,6 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
 
 		train_images[index1] = cifar100[index2]
 
-	# TODO: change the files of the instance_dependent to labels like the others
 	elif noise_mode in {'symmetric', 'asymmetric', 'instance_dependent'}:
 		# read noisy labels and change the train_labels
 		labels_path = f'{path}/{dataset}/{noise_mode}/labels_{noise_rate}.npy'
