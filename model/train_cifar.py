@@ -397,7 +397,7 @@ def main(_):
     if FLAGS.model_name == 'wrn':
         hparams.add_hparam('model_name', 'wrn')
         hparams.add_hparam('num_epochs', 200)
-        hparams.add_hparam('wrn_size', 160)
+        hparams.add_hparam('wrn_size', 32)
         hparams.add_hparam('lr', 0.1)
         hparams.add_hparam('weight_decay_rate', 5e-4)
     else:
