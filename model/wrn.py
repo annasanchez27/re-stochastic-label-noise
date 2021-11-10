@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.keras.layers as tfkl
+from tensorflow.keras.layers.experimental import preprocessing
 
 
 def conv3x3(out_planes, stride=1):
@@ -42,7 +43,7 @@ class Wide_Basic(tfkl.Layer):
 
 
 class Wide_ResNet(tfkl.Layer):
-    def __init__(self, dropout_rate=0, depth=28, widen_factor=2, num_classes=10):
+    def __init__(self, mean, variance, dropout_rate=0, depth=28, widen_factor=2, num_classes=10):
         super(Wide_ResNet, self).__init__()
         self.in_planes = 16
 
@@ -53,6 +54,11 @@ class Wide_ResNet(tfkl.Layer):
         print('| Wide-Resnet %dx%d' % (depth, k))
         nStages = [16, 16 * k, 32 * k, 64 * k]
 
+        # normalization layer
+        self.data_augmentation = tf.keras.Sequential(
+            [preprocessing.RandomCrop(32, 32),
+             preprocessing.RandomFlip("horizontal")])
+        self.normalize = preprocessing.Normalization(mean=mean, variance=variance)
         self.conv1 = conv3x3(nStages[0])
         self.layer1 = self._wide_layer(Wide_Basic, nStages[1], n, dropout_rate, stride=1)
         self.layer2 = self._wide_layer(Wide_Basic, nStages[2], n, dropout_rate, stride=2)
@@ -71,7 +77,9 @@ class Wide_ResNet(tfkl.Layer):
         return tf.keras.Sequential(layers)
 
     def call(self, x, get_feat=False):
-        out = self.conv1(x)
+        out = self.data_augmentation(x)
+        out = self.normalize(out)
+        out = self.conv1(out)
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
