@@ -1,6 +1,6 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras import datasets
-import numpy as np
 
 
 def get_dataset(dataset, noise_mode, noise_rate, path):
@@ -16,7 +16,6 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
 
 	# thats the only way to imitate the randomcrop effect that pytorch does, cause tf does not do padding
 	train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
-
 
 	if noise_mode == 'openset' and dataset == 'cifar10':
 		# replace part of CIFAR-10 images with CIFAR-100 images as done in the original code
