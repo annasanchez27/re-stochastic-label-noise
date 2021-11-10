@@ -5,7 +5,9 @@ from tensorflow.keras.layers.experimental import preprocessing
 
 
 def conv3x3(out_planes, stride=1):
-    return tfkl.Conv2D(filters=out_planes, kernel_size=3, use_bias=True, strides=stride, padding="same")
+    return tfkl.Conv2D(
+        filters=out_planes, kernel_size=3, use_bias=True, strides=stride, padding="same"
+    )
 
 
 class WideBasic(tfkl.Layer):
@@ -18,16 +20,26 @@ class WideBasic(tfkl.Layer):
         """
         super(WideBasic, self).__init__()
         self.bn1 = tfkl.BatchNormalization()
-        self.conv1 = tfkl.Conv2D(filters=out_planes, kernel_size=3, use_bias=True, padding="same")
+        self.conv1 = tfkl.Conv2D(
+            filters=out_planes, kernel_size=3, use_bias=True, padding="same"
+        )
         self.dropout_rate = dropout_rate
         if self.dropout_rate > 0:
             self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.bn2 = tfkl.BatchNormalization()
-        self.conv2 = tfkl.Conv2D(filters=out_planes, kernel_size=3, use_bias=True, padding="same", strides=stride)
+        self.conv2 = tfkl.Conv2D(
+            filters=out_planes,
+            kernel_size=3,
+            use_bias=True,
+            padding="same",
+            strides=stride,
+        )
         self.shortcut = tf.keras.Sequential()
         if stride != 1 or in_planes != out_planes:
             self.shortcut = tf.keras.Sequential(
-                tfkl.Conv2D(filters=out_planes, kernel_size=1, use_bias=True, strides=stride)
+                tfkl.Conv2D(
+                    filters=out_planes, kernel_size=1, use_bias=True, strides=stride
+                )
             )
 
     def call(self, x):
@@ -41,21 +53,23 @@ class WideBasic(tfkl.Layer):
 
 
 class WideResNet(tfk.Model):
-    def __init__(self, mean, variance, dropout_rate=0, depth=28, widen_factor=2, num_classes=10):
+    def __init__(
+        self, mean, variance, dropout_rate=0, depth=28, widen_factor=2, num_classes=10
+    ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
 
-        assert ((depth - 4) % 6 == 0), 'Wide-resnet depth should be 6n+4'
+        assert (depth - 4) % 6 == 0, "Wide-resnet depth should be 6n+4"
         n = (depth - 4) // 6
         k = widen_factor
 
-        print('| Wide-Resnet %dx%d' % (depth, k))
+        print("| Wide-Resnet %dx%d" % (depth, k))
         nStages = [16, 16 * k, 32 * k, 64 * k]
 
         # normalization layer
         self.data_augmentation = tf.keras.Sequential(
-            [preprocessing.RandomCrop(32, 32),
-             preprocessing.RandomFlip("horizontal")])
+            [preprocessing.RandomCrop(32, 32), preprocessing.RandomFlip("horizontal")]
+        )
         self.normalize = preprocessing.Normalization(mean=mean, variance=variance)
         self.conv1 = conv3x3(nStages[0])
         self.layer1 = self._wide_layer(WideBasic, nStages[1], n, dropout_rate, stride=1)

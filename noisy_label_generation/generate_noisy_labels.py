@@ -5,7 +5,10 @@ import random
 def generate_symmetric_noisy_labels(labels, p=0.4):
     """Flip each label to any other class with a probability of p."""
     unique_labels = np.unique(labels)
-    noisy_labels = [i if random.uniform(0, 1) > p else unique_labels[random.choice(unique_labels)] for i in labels]
+    noisy_labels = [
+        i if random.uniform(0, 1) > p else unique_labels[random.choice(unique_labels)]
+        for i in labels
+    ]
     return noisy_labels
 
 
@@ -53,9 +56,7 @@ def generate_asymmetric_noisy_labels_cifar100(labels, p=0.4):
     So, 0 → 1, 1 → 2, ... , n → 0
     """
     unique_labels = np.unique(labels)
-    labels_mapper = {
-        i: i+1 if i+1 in unique_labels else 0 for i in unique_labels
-    }
+    labels_mapper = {i: i + 1 if i + 1 in unique_labels else 0 for i in unique_labels}
     noisy_labels = [i if random.uniform(0, 1) > p else labels_mapper[i] for i in labels]
     return noisy_labels
 
