@@ -15,12 +15,8 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
 	train_images, test_images = train_images / 255.0, test_images / 255.0
 
 	# thats the only way to imitate the randomcrop effect that pytorch does, cause tf does not do padding
-	# maybe this is better just before the random crop in the model and do it just for that batch (but done each time)
-	train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40)
-	# train_images = np.pad(train_images, ((0, 0), (4, 4), (4, 4), (0, 0)), mode='constant')
+	train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
 
-	# randomcrop, randomflip and mean std normalization is recommended to make it inside the model as a layer.
-	# randomcrop and randomflip are only performed in training mode, not inference mode.
 
 	if noise_mode == 'openset' and dataset == 'cifar10':
 		# replace part of CIFAR-10 images with CIFAR-100 images as done in the original code
@@ -41,5 +37,4 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
 	else:
 		raise ValueError(f'Incorrect noise_mode provided: {noise_mode}')
 
-	# also return normalization values or keeping in config file
 	return (train_images, train_labels), (test_images, test_labels)
