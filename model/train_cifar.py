@@ -82,10 +82,8 @@ def build_model(inputs, num_classes, is_training, hparams):
       The logits of the image model.
     """
     scopes = setup_arg_scopes(is_training)
-    print("HERE")
-    print(scopes)
-    # with contextlib.nested(*scopes):
-    return build_wrn_model(inputs, num_classes, hparams.wrn_size)
+    with contextlib.nested(*scopes):
+        return build_wrn_model(inputs, num_classes, hparams.wrn_size)
 
 
 class CifarModel(object):
