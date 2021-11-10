@@ -1,0 +1,16 @@
+dataset: 'cifar10'
+noise_mode: 'symmetric'
+noise_rate: 0.1
+path: 'noisy_label_generation/labels'
+
+batch_size: 128
+epochs: 250
+
+cifar10:
+  mean: [0.4914, 0.4822, 0.4465]
+  std: [0.2023, 0.1994, 0.2010]
+
+cifar100:
+  mean: [0.5071, 0.4867, 0.4408]
+  std: [0.2675, 0.2565, 0.2761]
+

@@ -29,10 +29,10 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
 	elif noise_mode in {'symmetric', 'asymmetric', 'instance_dependent'}:
 		# read noisy labels and change the train_labels
 		labels_path = f'{path}/{dataset}/{noise_mode}/labels_{noise_rate}.npy'
-		train_labels = np.load(labels_path).reshape(-1, 1)
+		train_labels = np.load(labels_path)
 	elif noise_mode == 'original':
 		# keep correct labels
-		pass
+		train_labels = np.squeeze(train_labels)
 	else:
 		raise ValueError(f'Incorrect noise_mode provided: {noise_mode}')
 

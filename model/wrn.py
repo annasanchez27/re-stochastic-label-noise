@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 from tensorflow.keras.layers.experimental import preprocessing
 
@@ -7,7 +8,7 @@ def conv3x3(out_planes, stride=1):
     return tfkl.Conv2D(filters=out_planes, kernel_size=3, use_bias=True, strides=stride, padding="same")
 
 
-class Wide_Basic(tfkl.Layer):
+class WideBasic(tfkl.Layer):
     def __init__(self, in_planes, out_planes, dropout_rate, stride=1):
         """
         :param in_planes: number of features
@@ -15,16 +16,13 @@ class Wide_Basic(tfkl.Layer):
         :param dropout_rate:
         :param stride:
         """
-        super(Wide_Basic, self).__init__()
+        super(WideBasic, self).__init__()
         self.bn1 = tfkl.BatchNormalization()
-        # filters is the dim of the output space
-        # TODO: check padding
         self.conv1 = tfkl.Conv2D(filters=out_planes, kernel_size=3, use_bias=True, padding="same")
         self.dropout_rate = dropout_rate
         if self.dropout_rate > 0:
             self.dropout = tf.keras.layers.Dropout(dropout_rate)
         self.bn2 = tfkl.BatchNormalization()
-        # TODO: check padding
         self.conv2 = tfkl.Conv2D(filters=out_planes, kernel_size=3, use_bias=True, padding="same", strides=stride)
         self.shortcut = tf.keras.Sequential()
         if stride != 1 or in_planes != out_planes:
@@ -42,9 +40,9 @@ class Wide_Basic(tfkl.Layer):
         return out
 
 
-class Wide_ResNet(tfkl.Layer):
+class WideResNet(tfk.Model):
     def __init__(self, mean, variance, dropout_rate=0, depth=28, widen_factor=2, num_classes=10):
-        super(Wide_ResNet, self).__init__()
+        super(WideResNet, self).__init__()
         self.in_planes = 16
 
         assert ((depth - 4) % 6 == 0), 'Wide-resnet depth should be 6n+4'
@@ -60,9 +58,9 @@ class Wide_ResNet(tfkl.Layer):
              preprocessing.RandomFlip("horizontal")])
         self.normalize = preprocessing.Normalization(mean=mean, variance=variance)
         self.conv1 = conv3x3(nStages[0])
-        self.layer1 = self._wide_layer(Wide_Basic, nStages[1], n, dropout_rate, stride=1)
-        self.layer2 = self._wide_layer(Wide_Basic, nStages[2], n, dropout_rate, stride=2)
-        self.layer3 = self._wide_layer(Wide_Basic, nStages[3], n, dropout_rate, stride=2)
+        self.layer1 = self._wide_layer(WideBasic, nStages[1], n, dropout_rate, stride=1)
+        self.layer2 = self._wide_layer(WideBasic, nStages[2], n, dropout_rate, stride=2)
+        self.layer3 = self._wide_layer(WideBasic, nStages[3], n, dropout_rate, stride=2)
         self.bn1 = tfkl.BatchNormalization(momentum=0.9)
         self.linear = tfkl.Dense(num_classes)
 
@@ -85,9 +83,20 @@ class Wide_ResNet(tfkl.Layer):
         out = self.layer3(out)
         out = tf.nn.relu(self.bn1(out))
         out = tf.nn.avg_pool2d(out, 8, strides=None, padding="VALID")
-        out = tf.reshape(out, (out.shape[0], -1))
+        out = tf.reshape(out, (tf.shape(out)[0], -1))
 
         if get_feat:
             return out
         else:
             return self.linear(out)
+
+    def train_step(self, data):
+        x, y = data
+        with tf.GradientTape() as tape:
+            logits = self(x, training=True)
+            loss = tfk.losses.categorical_crossentropy(y, logits)
+        trainable_vars = self.trainable_variables
+        gradients = tape.gradient(loss, trainable_vars)
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        return {"loss": loss}
