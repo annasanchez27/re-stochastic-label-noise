@@ -68,7 +68,7 @@ class Wide_ResNet(tfkl.Layer):
             layers.append(block(self.in_planes, planes, dropout_rate, stride))
             self.in_planes = planes
 
-        return tf.keras.Sequential(*layers)
+        return tf.keras.Sequential(layers)
 
     def call(self, x, get_feat=False):
         out = self.conv1(x)
@@ -76,8 +76,8 @@ class Wide_ResNet(tfkl.Layer):
         out = self.layer2(out)
         out = self.layer3(out)
         out = tf.nn.relu(self.bn1(out))
-        out = tf.nn.avg_pool2d(out, 8)
-        out = out.view(out.size(0), -1)
+        out = tf.nn.avg_pool2d(out, 8, strides=None, padding="VALID")
+        out = tf.reshape(out, (out.shape[0], -1))
 
         if get_feat:
             return out
