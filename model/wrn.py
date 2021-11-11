@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 from tensorflow.keras.layers.experimental import preprocessing
+import wandb
 
 
 def conv3x3(out_planes, stride=1):
@@ -112,5 +113,6 @@ class WideResNet(tfk.Model):
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+        wandb.log({"loss": loss})
 
         return {"loss": loss}
