@@ -13,6 +13,7 @@ def main():
     mean = config[dataset]["mean"]
     variance = np.square(config[dataset]["std"])
     batch_size = config["batch_size"]
+    sigma = config["sigma"]
 
     (train_images, train_labels), (test_images, test_labels) = get_dataset(
         dataset,
@@ -21,7 +22,7 @@ def main():
         path=config["path"],
     )
 
-    model = WideResNet(mean, variance)
+    model = WideResNet(mean, variance, sigma)
 
     steps = train_images.shape[0] // batch_size
     model.fit(
