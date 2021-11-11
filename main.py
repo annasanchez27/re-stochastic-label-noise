@@ -24,6 +24,8 @@ def main():
 
     model = WideResNet(mean, variance, sigma)
 
+    model.compile(optimizer="sgd")
+
     steps = train_images.shape[0] // batch_size
     model.fit(
         train_images,
