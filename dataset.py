@@ -53,4 +53,4 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
     val_labels = tf.one_hot(val_labels, 10)
     test_labels = tf.one_hot(test_labels, 10)
 
-    return (train_images[:500, :, :, :], train_labels[:500, :]), (val_images[:500, :, :, :], val_labels[:500, :]), (test_images, test_labels)
+    return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels)
