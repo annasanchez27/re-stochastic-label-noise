@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 import wandb
+from wandb.keras import WandbCallback
 
 
 from dataset import get_dataset
@@ -21,13 +22,12 @@ def main():
     batch_size = config["batch_size"]
     sigma = config["sigma"]
 
-    (train_images, train_labels), (test_images, test_labels) = get_dataset(
+    (train_images, train_labels), (val_images, val_labels), (test_images, test_labels) = get_dataset(
         dataset,
         noise_mode=config["noise_mode"],
         noise_rate=config["noise_rate"],
         path=config["path"],
     )
-
 
     saver = CheckpointSaver(
         k=config["save_every_kth_epoch"], checkpoint_path=config["checkpoint_path"]
@@ -40,7 +40,9 @@ def main():
     model.fit(
         train_images,
         train_labels,
-        callbacks=[saver],
+        validation_data=(val_images, val_labels),
+        validation_freq=10,
+        callbacks=[saver, WandbCallback(monitor="train_loss")],
         epochs=config["epochs"],
         steps_per_epoch=steps,
         batch_size=batch_size,

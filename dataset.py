@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import datasets
-
+from sklearn.model_selection import train_test_split
 
 def get_dataset(dataset, noise_mode, noise_rate, path):
     if dataset == "cifar10":
@@ -46,7 +46,11 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
     else:
         raise ValueError(f"Incorrect noise_mode provided: {noise_mode}")
 
+    train_images, val_images, train_labels, val_labels = train_test_split(train_images, train_labels, test_size=0.1,
+                                                                          random_state=42)
+
     train_labels = tf.one_hot(train_labels, 10)
+    val_labels = tf.one_hot(val_labels, 10)
     test_labels = tf.one_hot(test_labels, 10)
 
-    return (train_images, train_labels), (test_images, test_labels)
+    return (train_images[:500, :, :, :], train_labels[:500, :]), (val_images[:500, :, :, :], val_labels[:500, :]), (test_images, test_labels)
