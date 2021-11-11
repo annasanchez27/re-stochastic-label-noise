@@ -46,4 +46,7 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
     else:
         raise ValueError(f"Incorrect noise_mode provided: {noise_mode}")
 
+    train_labels = tf.one_hot(train_labels, 10)
+    test_labels = tf.one_hot(test_labels, 10)
+
     return (train_images, train_labels), (test_images, test_labels)

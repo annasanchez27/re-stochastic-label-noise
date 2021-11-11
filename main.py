@@ -19,6 +19,7 @@ def main():
     mean = config[dataset]["mean"]
     variance = np.square(config[dataset]["std"])
     batch_size = config["batch_size"]
+    sigma = config["sigma"]
 
     (train_images, train_labels), (test_images, test_labels) = get_dataset(
         dataset,
@@ -27,13 +28,15 @@ def main():
         path=config["path"],
     )
 
-    model = WideResNet(mean, variance)
+
     saver = CheckpointSaver(
         k=config["save_every_kth_epoch"], checkpoint_path=config["checkpoint_path"]
     )
 
+    model = WideResNet(mean, variance, sigma)
+    model.compile(optimizer="sgd")
+
     steps = train_images.shape[0] // batch_size
-    model.compile(optimizer="adam")
     model.fit(
         train_images,
         train_labels,

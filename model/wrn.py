@@ -55,10 +55,11 @@ class WideBasic(tfkl.Layer):
 
 class WideResNet(tfk.Model):
     def __init__(
-        self, mean, variance, dropout_rate=0, depth=28, widen_factor=2, num_classes=10
+        self, mean, variance, sigma, dropout_rate=0, depth=28, widen_factor=2, num_classes=10
     ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
+        self.sigma = sigma
 
         assert (depth - 4) % 6 == 0, "Wide-resnet depth should be 6n+4"
         n = (depth - 4) // 6
@@ -78,6 +79,7 @@ class WideResNet(tfk.Model):
         self.layer3 = self._wide_layer(WideBasic, nStages[3], n, dropout_rate, stride=2)
         self.bn1 = tfkl.BatchNormalization(momentum=0.9)
         self.linear = tfkl.Dense(num_classes)
+        self.flatten = tfkl.Flatten()
 
     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
         strides = [stride] + [1] * (num_blocks - 1)
@@ -98,7 +100,7 @@ class WideResNet(tfk.Model):
         out = self.layer3(out)
         out = tf.nn.relu(self.bn1(out))
         out = tf.nn.avg_pool2d(out, 8, strides=None, padding="VALID")
-        out = tf.reshape(out, (tf.shape(out)[0], -1))
+        out = self.flatten(out)
 
         if get_feat:
             return out
@@ -107,6 +109,9 @@ class WideResNet(tfk.Model):
 
     def train_step(self, data):
         x, y = data
+        if self.sigma > 0:
+            # mean 0
+            y += self.sigma*tf.random.normal([y.shape[1]])
         with tf.GradientTape() as tape:
             logits = self(x, training=True)
             loss = tfk.losses.categorical_crossentropy(y, logits)
