@@ -5,7 +5,7 @@ path: 'noisy_label_generation/labels'
 
 batch_size: 128
 epochs: 250
-sigma: 0.5
+sigma: 0.0
 
 cifar10:
   mean: [0.4914, 0.4822, 0.4465]
