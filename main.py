@@ -55,11 +55,11 @@ def main():
         batch_size=batch_size,
     )
 
-    train_dataset = tf.data.Dataset.from_tensor_slices((train_images, train_labels))
-    train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
-
-    val_dataset = tf.data.Dataset.from_tensor_slices((val_images, val_labels))
-    val_dataset = val_dataset.shuffle(buffer_size=1024).batch(batch_size)
+    # train_dataset = tf.data.Dataset.from_tensor_slices((train_images, train_labels))
+    # train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+    #
+    # val_dataset = tf.data.Dataset.from_tensor_slices((val_images, val_labels))
+    # val_dataset = val_dataset.shuffle(buffer_size=1024).batch(batch_size)
 
     saver = CheckpointSaver(
         k=config["save_every_kth_epoch"], checkpoint_path=config["checkpoint_path"]
@@ -68,17 +68,17 @@ def main():
     model = WideResNet(mean, variance, sigma)
     model.compile(optimizer="sgd", loss=tf.keras.losses.CategoricalCrossentropy())
 
-    train(train_dataset, val_dataset, model, config["epochs"])
+    # train(train_dataset, val_dataset, model, config["epochs"])
 
-    # model.fit(
-    #     train_images,
-    #     train_labels,
-    #     validation_data=(val_images, val_labels),
-    #     validation_freq=10,
-    #     callbacks=[saver, WandbCallback(monitor="train_loss")],
-    #     epochs=config["epochs"],
-    #     batch_size=batch_size,
-    # )
+    model.fit(
+        train_images,
+        train_labels,
+        validation_data=(val_images, val_labels),
+        validation_freq=10,
+        callbacks=[saver, WandbCallback(monitor="train_loss")],
+        epochs=config["epochs"],
+        batch_size=batch_size,
+    )
 
 
 if __name__ == "__main__":
