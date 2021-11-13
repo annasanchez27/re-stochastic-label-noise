@@ -3,7 +3,8 @@ import tensorflow as tf
 from tensorflow.keras import datasets
 from sklearn.model_selection import train_test_split
 
-def get_dataset(dataset, noise_mode, noise_rate, path):
+
+def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
     if dataset == "cifar10":
         (
             (train_images, train_labels),
@@ -53,4 +54,13 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
     val_labels = tf.one_hot(val_labels, 10)
     test_labels = tf.one_hot(test_labels, 10)
 
+    train_images, train_labels = make_divisible_by_batch(train_images, train_labels, batch_size)
+    val_images, val_labels = make_divisible_by_batch(val_images, val_labels, batch_size)
+    test_images, test_labels = make_divisible_by_batch(test_images, test_labels, batch_size)
+
     return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels)
+
+
+def make_divisible_by_batch(x, y, batch_size):
+    k = x.shape[0] % batch_size
+    return x[:-k, :, :, :], y[:-k, :]

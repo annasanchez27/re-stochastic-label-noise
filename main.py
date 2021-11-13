@@ -27,6 +27,7 @@ def main():
         noise_mode=config["noise_mode"],
         noise_rate=config["noise_rate"],
         path=config["path"],
+        batch_size=batch_size,
     )
 
     saver = CheckpointSaver(
@@ -36,7 +37,6 @@ def main():
     model = WideResNet(mean, variance, sigma)
     model.compile(optimizer="sgd")
 
-    steps = train_images.shape[0] // batch_size
     model.fit(
         train_images,
         train_labels,
@@ -44,7 +44,6 @@ def main():
         validation_freq=10,
         callbacks=[saver, WandbCallback(monitor="train_loss")],
         epochs=config["epochs"],
-        steps_per_epoch=steps,
         batch_size=batch_size,
     )
 
