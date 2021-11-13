@@ -68,12 +68,12 @@ def main():
 
     model = WideResNet(mean, variance, sigma)
     loss = tf.keras.losses.CategoricalCrossentropy()
-    optimizer = tf.keras.optimizers.SGD(learning_rate=config["learning_rate"], momentum=config["momentum"])
+    # optimizer = tf.keras.optimizers.SGD(learning_rate=config["learning_rate"], momentum=config["momentum"])
     optimizer = tfa.optimizers.SGDW(
         weight_decay=config["weight_decay"],
         momentum=config["momentum"],
         learning_rate=config["learning_rate"])
-    model.compile(optimizer="sgd", loss=loss)
+    model.compile(optimizer=optimizer, loss=loss)
 
     # train(train_dataset, val_dataset, model, config["epochs"])
 
