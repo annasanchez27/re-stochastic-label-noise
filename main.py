@@ -24,7 +24,7 @@ def train(train_dataset, val_dataset, model,epochs=10):
         # Iterate over the batches of the dataset
         for step, batch_data in tqdm(enumerate(train_dataset)):
             loss_value = model.train_step(batch_data)
-            train_loss.append(float(loss_value))
+            train_loss.append(float(loss_value.numpy()))
 
         if epoch % 10:
             for step, (x_batch_val, y_batch_val) in tqdm(enumerate(val_dataset)):
