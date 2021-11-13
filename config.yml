@@ -4,8 +4,11 @@ noise_rate: 0.1
 path: 'noisy_label_generation/labels'
 
 batch_size: 128
-epochs: 250
+epochs: 300
 sigma: 0.0
+learning_rate: 0.001
+momentum: 0.9
+weight_decay: 0.0005
 
 cifar10:
   mean: [0.4914, 0.4822, 0.4465]

@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
 import numpy as np
 import yaml
 import wandb
@@ -66,7 +67,13 @@ def main():
     )
 
     model = WideResNet(mean, variance, sigma)
-    model.compile(optimizer="sgd", loss=tf.keras.losses.CategoricalCrossentropy())
+    loss = tf.keras.losses.CategoricalCrossentropy()
+    optimizer = tf.keras.optimizers.SGD(learning_rate=config["learning_rate"], momentum=config["momentum"])
+    optimizer = tfa.optimizers.SGDW(
+        weight_decay=config["weight_decay"],
+        momentum=config["momentum"],
+        learning_rate=config["learning_rate"])
+    model.compile(optimizer="sgd", loss=loss)
 
     # train(train_dataset, val_dataset, model, config["epochs"])
 
