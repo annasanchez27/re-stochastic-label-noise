@@ -1,9 +1,12 @@
-from pathlib import Path
+import tensorflow as tf
+import tensorflow_addons as tfa
 import numpy as np
+import argparse
 import yaml
 import wandb
-from wandb.keras import WandbCallback
 
+from wandb.keras import WandbCallback
+from pathlib import Path
 
 from dataset import get_dataset
 from model.wrn import WideResNet
@@ -14,19 +17,28 @@ wandb.init(project="re-stochastic-label-noise", entity="sebastiaan")
 
 def main():
     config = yaml.load(Path("config.yml").read_text(), Loader=yaml.SafeLoader)
+
+    parser = argparse.ArgumentParser(description="re-SLN")
+    parser.add_argument('--dataset', type=str, help='Dataset to use.', default=config["dataset"])
+    parser.add_argument('--noise_mode', type=str, help='Noise mode.', default=config["noise_mode"])
+    parser.add_argument('--noise_rate', type=float, help='Noise rate.', default=config["noise_rate"])
+    parser.add_argument('--sigma', type=float, help='Sigma parameter for SLN.', default=config["sigma"])
+    args = parser.parse_args()
+
     wandb.config = config
 
-    dataset = config["dataset"]
+    dataset = args.dataset
     mean = config[dataset]["mean"]
     variance = np.square(config[dataset]["std"])
     batch_size = config["batch_size"]
-    sigma = config["sigma"]
+    sigma = args.sigma
 
     (train_images, train_labels), (val_images, val_labels), (test_images, test_labels) = get_dataset(
         dataset,
-        noise_mode=config["noise_mode"],
-        noise_rate=config["noise_rate"],
+        noise_mode=args.noise_mode,
+        noise_rate=args.noise_rate,
         path=config["path"],
+        batch_size=batch_size,
     )
 
     saver = CheckpointSaver(
@@ -34,9 +46,13 @@ def main():
     )
 
     model = WideResNet(mean, variance, sigma)
-    model.compile(optimizer="sgd")
+    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    optimizer = tfa.optimizers.SGDW(
+        weight_decay=config["weight_decay"],
+        momentum=config["momentum"],
+        learning_rate=config["learning_rate"])
+    model.compile(optimizer=optimizer, loss=loss)
 
-    steps = train_images.shape[0] // batch_size
     model.fit(
         train_images,
         train_labels,
@@ -44,7 +60,6 @@ def main():
         validation_freq=10,
         callbacks=[saver, WandbCallback(monitor="train_loss")],
         epochs=config["epochs"],
-        steps_per_epoch=steps,
         batch_size=batch_size,
     )
 

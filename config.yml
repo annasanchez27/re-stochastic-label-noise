@@ -1,11 +1,14 @@
 dataset: 'cifar10'
-noise_mode: 'symmetric'
+noise_mode: 'asymmetric'
 noise_rate: 0.1
 path: 'noisy_label_generation/labels'
 
-batch_size: 128
-epochs: 250
-sigma: 0.5
+batch_size: 32
+epochs: 300
+sigma: 0.0   # SLN
+learning_rate: 0.001
+momentum: 0.9
+weight_decay: 0.0005
 
 cifar10:
   mean: [0.4914, 0.4822, 0.4465]

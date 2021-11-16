@@ -23,8 +23,6 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
     # thats the only way to imitate the randomcrop effect that pytorch does, cause tf does not do padding
     train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
 
-    original_labels = np.array(train_labels)
-
     if noise_mode == "openset" and dataset == "cifar10":
         # replace part of CIFAR-10 images with CIFAR-100 images as done in the original code
         (cifar100, _), _ = datasets.cifar100.load_data()
@@ -48,13 +46,11 @@ def get_dataset(dataset, noise_mode, noise_rate, path):
     else:
         raise ValueError(f"Incorrect noise_mode provided: {noise_mode}")
 
-    train_labels = tf.one_hot(train_labels, 10).numpy()
-    test_labels = tf.one_hot(test_labels, 10).numpy()
-
-    # add an extra dimension to labels indicating the correct label (original one)
-    train_labels = np.column_stack((train_labels, original_labels))
-
     train_images, val_images, train_labels, val_labels = train_test_split(train_images, train_labels, test_size=0.1,
                                                                           random_state=42)
 
-    return (train_images[:500, :, :, :], train_labels[:500, :]), (val_images[:500, :, :, :], val_labels[:500, :]), (test_images, test_labels)
+    train_labels = tf.one_hot(train_labels, 10)
+    val_labels = tf.one_hot(val_labels, 10)
+    test_labels = tf.one_hot(test_labels, 10)
+
+    return (train_images, train_labels), (val_images, val_labels), (test_images, test_labels)
