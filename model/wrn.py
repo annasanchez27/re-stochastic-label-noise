@@ -107,7 +107,16 @@ class WideResNet(tfk.Model):
             return self.linear(out)
 
     def train_step(self, data):
-        x, y = data
+        x, labels = data
+        y = labels[:, 0:10]
+        ground_truth = labels[:, 10]
+        labels_idx = tf.math.argmax(y, axis=1)
+        labels_idx = tf.cast(labels_idx, tf.float32)
+
+        noisy_y = tf.where(ground_truth != labels_idx)
+
+        not_noisy_y = tf.where(ground_truth == labels_idx)
+
         if self.sigma > 0:
             # mean 0
             y += self.sigma*tf.random.normal([y.shape[1]])
