@@ -82,6 +82,8 @@ class WideResNet(tfk.Model):
         self.linear = tfkl.Dense(num_classes)
         self.flatten = tfkl.Flatten()
 
+        self.cat_accuracy = tfk.metrics.CategoricalAccuracy()
+
     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
@@ -110,14 +112,7 @@ class WideResNet(tfk.Model):
 
     def train_step(self, data):
         x, labels = data
-        y = labels[:, 0:10]
-        ground_truth = labels[:, 10]
-        labels_idx = tf.math.argmax(y, axis=1)
-        labels_idx = tf.cast(labels_idx, tf.float32)
-
-        noisy_y = tf.where(ground_truth != labels_idx)
-
-        not_noisy_y = tf.where(ground_truth == labels_idx)
+        y = labels[:, :10]
 
         if self.sigma > 0:
             # mean 0
@@ -130,3 +125,30 @@ class WideResNet(tfk.Model):
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
         return {"loss": loss}
+
+    def test_step(self, data):
+        x, labels = data
+        y = labels[:, :10]
+        ground_truth = labels[:, 10:]
+        labels_idx = tf.math.argmax(y, axis=1)
+        labels_idx = tf.cast(labels_idx, tf.float32)
+
+        noisy_y = tf.where(ground_truth != labels_idx)
+        noisy_x = tf.where(x != labels_idx)
+        clean_y = tf.where(ground_truth == labels_idx)
+        clean_x = tf.where(x == labels_idx)
+
+        logits_noisy_y = self(noisy_x, training=False)
+        dist_noisy_y = tf.nn.softmax(logits_noisy_y)
+        logits_clean_y = self(clean_x, training=False)
+        dist_clean_y = tf.nn.softmax(logits_clean_y)
+
+        self.cat_accuracy.update_state(dist_noisy_y, noisy_y)
+        acc_noisy = self.cat_accuracy.result().numpy()
+        self.cat_accuracy.reset_state()
+
+        self.cat_accuracy.update_state(dist_clean_y, clean_y)
+        acc_clean = self.cat_accuracy.result().numpy()
+        self.cat_accuracy.reset_state()
+
+        return {"noisy_accuracy": acc_noisy, "clean_accuracy": acc_clean}
