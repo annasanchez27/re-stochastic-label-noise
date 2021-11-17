@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import datasets
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 
 def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
@@ -22,6 +23,8 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
     train_images, test_images = train_images / 255.0, test_images / 255.0
 
     # only way to imitate the randomcrop effect that pytorch does, cause tf does not do padding
+    train_images = tf.image.random_crop(value=train_images, size=(train_images.shape[0], 32, 32, 3))
+    train_images = tf.image.random_flip_left_right(train_images, seed=None)
     train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
 
     ground_truth_train_labels = train_labels
@@ -48,6 +51,8 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
         train_labels = np.squeeze(train_labels)
     else:
         raise ValueError(f"Incorrect noise_mode provided: {noise_mode}")
+
+    print(f"accuracy: {accuracy_score(train_labels, ground_truth_train_labels)}")
 
     train_labels = np.column_stack((tf.one_hot(train_labels, 10), tf.one_hot(np.squeeze(ground_truth_train_labels), 10)))
     test_labels = tf.one_hot(test_labels, 10)
