@@ -3,8 +3,6 @@ import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 from tensorflow.keras.layers.experimental import preprocessing
 
-import wandb
-
 
 def conv3x3(out_planes, stride=1):
     return tfkl.Conv2D(
