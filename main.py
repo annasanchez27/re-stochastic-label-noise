@@ -61,6 +61,7 @@ def main():
         callbacks=[saver, WandbCallback(monitor="train_loss")],
         epochs=config["epochs"],
         batch_size=batch_size,
+        shuffle=True,
     )
 
 
