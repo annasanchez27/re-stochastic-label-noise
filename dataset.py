@@ -23,9 +23,10 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
     train_images, test_images = train_images / 255.0, test_images / 255.0
 
     # only way to imitate the randomcrop effect that pytorch does, cause tf does not do padding
+    train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
     train_images = tf.image.random_crop(value=train_images, size=(train_images.shape[0], 32, 32, 3))
     train_images = tf.image.random_flip_left_right(train_images, seed=None)
-    train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
+
 
     ground_truth_train_labels = train_labels
 
