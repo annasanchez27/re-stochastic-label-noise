@@ -58,7 +58,7 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
             tf.one_hot(np.squeeze(ground_truth_train_labels), 10),
         )
     )
-    test_labels = tf.one_hot(test_labels, 10)
+    test_labels = tf.one_hot(np.squeeze(test_labels), 10)
 
     '''
     train_images, val_images, train_labels, val_labels = train_test_split(
