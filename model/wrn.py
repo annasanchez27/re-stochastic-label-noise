@@ -131,12 +131,19 @@ class WideResNet(tfk.Model):
         with tf.GradientTape() as tape:
             logits = self(x, training=True)
             loss = self.compiled_loss(y, logits)
+
+            lossL2 = tf.add_n([tf.nn.l2_loss(v) for v in self.trainable_variables
+                               if 'bias' not in v.name]) * 0.0005
+
+            loss += lossL2
+
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
         return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss}
 
+    '''
     def test_step(self, data):
         x, labels = data
         y = labels[:, :10]
@@ -169,3 +176,4 @@ class WideResNet(tfk.Model):
         self.cat_accuracy.reset_state()
 
         return {"acc": acc, "noisy_accuracy": acc_noisy, "clean_accuracy": acc_clean}
+    '''

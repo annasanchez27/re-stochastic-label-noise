@@ -47,8 +47,7 @@ def main():
 
     model = WideResNet(mean, variance, sigma)
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-    optimizer = tfa.optimizers.SGDW(
-        weight_decay=config["weight_decay"],
+    optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"],
         learning_rate=config["learning_rate"])
     model.compile(optimizer=optimizer, loss=loss)
