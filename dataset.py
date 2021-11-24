@@ -60,21 +60,23 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
     )
     test_labels = tf.one_hot(test_labels, 10)
 
+    '''
     train_images, val_images, train_labels, val_labels = train_test_split(
         train_images, train_labels, test_size=0.1, random_state=42
     )
+    '''
+
 
     train_images, train_labels = make_divisible_by_batch(
         train_images, train_labels, batch_size
     )
-    val_images, val_labels = make_divisible_by_batch(val_images, val_labels, batch_size)
+    #val_images, val_labels = make_divisible_by_batch(val_images, val_labels, batch_size)
     test_images, test_labels = make_divisible_by_batch(
         test_images, test_labels, batch_size
     )
 
     return (
         (train_images, train_labels),
-        (val_images, val_labels),
         (test_images, test_labels),
     )
 

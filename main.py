@@ -33,7 +33,7 @@ def main():
     batch_size = config["batch_size"]
     sigma = args.sigma
 
-    (train_images, train_labels), (val_images, val_labels), (test_images, test_labels) = get_dataset(
+    (train_images, train_labels), (test_images, test_labels) = get_dataset(
         dataset,
         noise_mode=args.noise_mode,
         noise_rate=args.noise_rate,
@@ -55,8 +55,8 @@ def main():
     model.fit(
         train_images,
         train_labels,
-        validation_data=(val_images, val_labels),
-        validation_freq=10,
+        validation_data=(test_images, test_labels),
+        validation_freq=1,
         callbacks=[saver, WandbCallback(monitor="train_loss")],
         epochs=config["epochs"],
         batch_size=batch_size,
