@@ -50,7 +50,7 @@ def main():
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"],
         learning_rate=config["learning_rate"])
-    model.compile(optimizer=optimizer, loss=loss)
+    model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
     model.fit(
         train_images,
