@@ -1,5 +1,4 @@
 import tensorflow as tf
-import tensorflow_addons as tfa
 import numpy as np
 import argparse
 import yaml
@@ -19,10 +18,18 @@ def main():
     config = yaml.load(Path("config.yml").read_text(), Loader=yaml.SafeLoader)
 
     parser = argparse.ArgumentParser(description="re-SLN")
-    parser.add_argument('--dataset', type=str, help='Dataset to use.', default=config["dataset"])
-    parser.add_argument('--noise_mode', type=str, help='Noise mode.', default=config["noise_mode"])
-    parser.add_argument('--noise_rate', type=float, help='Noise rate.', default=config["noise_rate"])
-    parser.add_argument('--sigma', type=float, help='Sigma parameter for SLN.', default=config["sigma"])
+    parser.add_argument(
+        "--dataset", type=str, help="Dataset to use.", default=config["dataset"]
+    )
+    parser.add_argument(
+        "--noise_mode", type=str, help="Noise mode.", default=config["noise_mode"]
+    )
+    parser.add_argument(
+        "--noise_rate", type=float, help="Noise rate.", default=config["noise_rate"]
+    )
+    parser.add_argument(
+        "--sigma", type=float, help="Sigma parameter for SLN.", default=config["sigma"]
+    )
     args = parser.parse_args()
 
     wandb.config = config
@@ -48,9 +55,9 @@ def main():
     model = WideResNet(mean, variance, sigma)
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(
-        momentum=config["momentum"],
-        learning_rate=config["learning_rate"])
-    model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
+        momentum=config["momentum"], learning_rate=config["learning_rate"]
+    )
+    model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
 
     model.fit(
         train_images,
@@ -61,6 +68,9 @@ def main():
         epochs=config["epochs"],
         batch_size=batch_size,
         shuffle=True,
+    )
+    model.save(
+        f"{config['checkpoint_path']}/final_model_{dataset}_{args.noise_mode}_{args.noise_rate}_{sigma}.hd5"
     )
 
 
