@@ -13,15 +13,15 @@ class CheckpointSaver(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         if epoch % self.k == 0:
-            self.model.save(f"{self.checkpoint_path}/model_checkpoint_{epoch}.hd5")
+            self.model.save_weights(f"{self.checkpoint_path}/model_checkpoint_{epoch}", save_format="h5", overwrite=True)
 
             if os.path.exists(
-                f"{self.checkpoint_path}/model_checkpoint_{epoch}.hd5"
+                f"{self.checkpoint_path}/model_checkpoint_{epoch}"
             ) and os.path.exists(
-                f"{self.checkpoint_path}/model_checkpoint_{epoch - self.k}.hd5"
+                f"{self.checkpoint_path}/model_checkpoint_{epoch - self.k}"
             ):
                 os.remove(
-                    f"{self.checkpoint_path}/model_checkpoint_{epoch - self.k}.hd5"
+                    f"{self.checkpoint_path}/model_checkpoint_{epoch - self.k}"
                 )
 
 

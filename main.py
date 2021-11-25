@@ -69,8 +69,9 @@ def main():
         batch_size=batch_size,
         shuffle=True,
     )
-    model.save(
-        f"{config['checkpoint_path']}/final_model_{dataset}_{args.noise_mode}_{args.noise_rate}_{sigma}.hd5"
+    model.save_weights(
+        f"{config['checkpoint_path']}/final_model_{dataset}_{args.noise_mode}_{args.noise_rate}_{sigma}",
+        save_format="h5",
     )
 
 
