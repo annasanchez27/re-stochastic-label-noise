@@ -28,7 +28,10 @@ def main():
         "--noise_rate", type=float, help="Noise rate.", default=config["noise_rate"]
     )
     parser.add_argument(
-        "--sigma", type=float, help="Sigma parameter for SLN.", default=config["sigma"]
+        "--sigma", type=float, help="Sigma parameter for SLN.", default=0.0
+    )
+    parser.add_argument(
+        "--use_sln", type=bool, help="Specify if SLN should be used", default=False
     )
     args = parser.parse_args()
 
@@ -38,7 +41,17 @@ def main():
     mean = config[dataset]["mean"]
     variance = np.square(config[dataset]["std"])
     batch_size = config["batch_size"]
-    sigma = args.sigma
+
+    if args.use_sln:
+        # On CIFAR-10, we use σ = 1 for symmetric noise and σ = 0.5 otherwise; On CIFAR-100, we
+        # use σ = 0.1 for instance-dependent noise and σ = 0.2 otherwise.
+        if dataset == "cifar10":
+            sigma = 0.5 if args.noise_mode == "symmetric" else 1.0
+        if dataset == "cifar100":
+            sigma = 0.1 if args.noise_type == "instance_dependent" else 0.2
+
+    print(
+        f"Training model on dataset: {dataset}, with noise mode: {args.noise_mode}, with noise rate: {args.noise_rate} and sigma: {sigma}")
 
     (train_images, train_labels), (test_images, test_labels) = get_dataset(
         dataset,
