@@ -48,7 +48,7 @@ def main():
         if dataset == "cifar10":
             sigma = 0.5 if args.noise_mode == "symmetric" else 1.0
         if dataset == "cifar100":
-            sigma = 0.1 if args.noise_type == "instance_dependent" else 0.2
+            sigma = 0.1 if args.noise_mode == "instance_dependent" else 0.2
 
     print(
         f"Training model on dataset: {dataset}, with noise mode: {args.noise_mode}, with noise rate: {args.noise_rate} and sigma: {sigma}")
