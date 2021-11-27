@@ -11,8 +11,6 @@ from dataset import get_dataset
 from model.wrn import WideResNet
 from model.utils import CheckpointSaver
 
-wandb.init(project="re-stochastic-label-noise", entity="sebastiaan")
-
 
 def main():
     config = yaml.load(Path("config.yml").read_text(), Loader=yaml.SafeLoader)
@@ -35,8 +33,6 @@ def main():
     )
     args = parser.parse_args()
 
-    wandb.config = config
-
     dataset = args.dataset
     mean = config[dataset]["mean"]
     variance = np.square(config[dataset]["std"])
@@ -49,6 +45,18 @@ def main():
             sigma = 0.5 if args.noise_mode == "symmetric" else 1.0
         if dataset == "cifar100":
             sigma = 0.1 if args.noise_mode == "instance_dependent" else 0.2
+
+    wandb.init(project="re-stochastic-label-noise", entity="sebastiaan", config={
+        "dataset": dataset,
+        "noise_rate": args.noise_rate,
+        "noise_mode": args.noise_mode,
+        "use_sln": args.use_sln,
+        "sigma": sigma,
+        "batch_size": batch_size,
+        "learning_rate": config["learning_rate"],
+        "momentum": config["momentum"],
+        "weight_decay": config["weight_decay"]
+    })
 
     print(
         f"Training model on dataset: {dataset}, with noise mode: {args.noise_mode}, with noise rate: {args.noise_rate} and sigma: {sigma}")
