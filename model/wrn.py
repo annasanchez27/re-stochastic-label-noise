@@ -54,7 +54,7 @@ class WideBasic(tfkl.Layer):
 
 class WideResNet(tfk.Model):
     def __init__(
-        self, mean, variance, sigma, ga_steps, dropout_rate=0, depth=28, widen_factor=2, num_classes=10, *args, **kwargs
+        self, mean, variance, sigma, ga_steps, inputs, dropout_rate=0, depth=28, widen_factor=2, num_classes=10, *args, **kwargs
     ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
@@ -81,6 +81,8 @@ class WideResNet(tfk.Model):
         self.flatten = tfkl.Flatten()
 
         self.cat_accuracy = tfk.metrics.CategoricalAccuracy()
+
+        self.build(inputs)
 
         # gradient accumulation
         self.n_gradients = tf.constant(ga_steps, dtype=tf.int32)
