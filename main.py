@@ -77,6 +77,7 @@ def main():
     saver = CheckpointSaver(
         k=config["save_every_kth_epoch"], checkpoint_path=config["checkpoint_path"]
     )
+    # https://stackoverflow.com/questions/66472201/gradient-accumulation-with-custom-model-fit-in-tf-keras
     input_shape = tf.keras.Input(shape=(None, 32, 32, 3))
     model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=[input_shape])
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)

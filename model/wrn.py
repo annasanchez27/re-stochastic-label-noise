@@ -54,7 +54,7 @@ class WideBasic(tfkl.Layer):
 
 class WideResNet(tfk.Model):
     def __init__(
-        self, mean, variance, sigma, ga_steps, dropout_rate=0, depth=28, widen_factor=2, num_classes=10
+        self, mean, variance, sigma, ga_steps, dropout_rate=0, depth=28, widen_factor=2, num_classes=10, *args, **kwargs
     ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
