@@ -3,7 +3,7 @@ noise_mode: 'asymmetric'
 noise_rate: 0.1
 path: 'noisy_label_generation/labels'
 
-batch_size: 32
+batch_size: 128
 epochs: 300
 sigma: 0.0   # SLN
 learning_rate: 0.001

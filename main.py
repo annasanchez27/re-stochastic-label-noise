@@ -87,7 +87,7 @@ def main():
         train_images,
         train_labels,
         validation_data=(test_images, test_labels),
-        validation_freq=1,
+        validation_freq=2,
         callbacks=[saver, WandbCallback(monitor="train_loss")],
         epochs=config["epochs"],
         batch_size=batch_size,
