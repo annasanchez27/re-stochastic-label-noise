@@ -46,7 +46,9 @@ def main():
         if dataset == "cifar100":
             sigma = 0.1 if args.noise_mode == "instance_dependent" else 0.2
 
-    wandb.init(project="re-stochastic-label-noise", entity="sebastiaan", config={
+    wandb.init(project="re-stochastic-label-noise", entity="sebastiaan")
+
+    wandb.config.update({
         "dataset": dataset,
         "noise_rate": args.noise_rate,
         "noise_mode": args.noise_mode,
@@ -55,7 +57,8 @@ def main():
         "batch_size": batch_size,
         "learning_rate": config["learning_rate"],
         "momentum": config["momentum"],
-        "weight_decay": config["weight_decay"]
+        "weight_decay": config["weight_decay"],
+        "epochs": config["epochs"],
     })
 
     print(
