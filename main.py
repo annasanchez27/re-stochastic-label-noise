@@ -42,7 +42,7 @@ def main():
         # On CIFAR-10, we use σ = 1 for symmetric noise and σ = 0.5 otherwise; On CIFAR-100, we
         # use σ = 0.1 for instance-dependent noise and σ = 0.2 otherwise.
         if dataset == "cifar10":
-            sigma = 0.5 if args.noise_mode == "symmetric" else 1.0
+            sigma = 1.0 if args.noise_mode == "symmetric" else 0.5
         if dataset == "cifar100":
             sigma = 0.1 if args.noise_mode == "instance_dependent" else 0.2
 
