@@ -1,4 +1,5 @@
 import tensorflow as tf
+import runai.ga.keras
 import numpy as np
 import argparse
 import yaml
@@ -59,6 +60,8 @@ def main():
         "momentum": config["momentum"],
         "weight_decay": config["weight_decay"],
         "epochs": config["epochs"],
+        "accumulation_steps": config["accumulation_steps"],
+        "effective_batch_size": config["accumulation_steps"] * batch_size,
     })
 
     print(
@@ -81,6 +84,7 @@ def main():
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
     )
+    optimizer = runai.ga.keras.optimizers.Optimizer(optimizer, steps=config["accumulation_steps"])
     model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
 
     model.fit(
