@@ -54,7 +54,7 @@ class WideBasic(tfkl.Layer):
 
 class WideResNet(tfk.Model):
     def __init__(
-        self, mean, variance, sigma, dropout_rate=0, depth=28, widen_factor=2, num_classes=10
+        self, mean, variance, sigma, ga_steps, dropout_rate=0, depth=28, widen_factor=2, num_classes=10
     ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
@@ -81,6 +81,13 @@ class WideResNet(tfk.Model):
         self.flatten = tfkl.Flatten()
 
         self.cat_accuracy = tfk.metrics.CategoricalAccuracy()
+
+        # gradient accumulation
+        self.n_gradients = tf.constant(ga_steps, dtype=tf.int32)
+        self.n_acum_step = tf.Variable(0, dtype=tf.int32, trainable=False)
+        self.gradient_accumulation = [
+            tf.Variable(tf.zeros_like(v, dtype=tf.float32), trainable=False) for v in
+            self.trainable_variables]
 
     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
         strides = [stride] + [1] * (num_blocks - 1)
@@ -109,6 +116,8 @@ class WideResNet(tfk.Model):
             return self.linear(out)
 
     def train_step(self, data):
+        self.n_acum_step.assign_add(1)
+
         x, labels = data
         y = labels[:, :10]
         ground_truth = tf.cast(tf.math.argmax(labels[:, 10:], axis=1), tf.float32)
@@ -139,9 +148,25 @@ class WideResNet(tfk.Model):
 
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+        # Accumulate batch gradients
+        for i in range(len(self.gradient_accumulation)):
+            self.gradient_accumulation[i].assign_add(gradients[i])
 
+        # If n_acum_step reach the n_gradients then we apply accumulated gradients to update the variables otherwise do nothing
+        tf.cond(tf.equal(self.n_acum_step, self.n_gradients), self.apply_accu_gradients, lambda: None)
+
+        # self.optimizer.apply_gradients(zip(gradients, trainable_vars))
         return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss}
+
+    def apply_accu_gradients(self):
+        # apply accumulated gradients
+        self.optimizer.apply_gradients(zip(self.gradient_accumulation, self.trainable_variables))
+
+        # reset
+        self.n_acum_step.assign(0)
+        for i in range(len(self.gradient_accumulation)):
+            self.gradient_accumulation[i].assign(tf.zeros_like(self.trainable_variables[i], dtype=tf.float32))
+
 
     '''
     def test_step(self, data):

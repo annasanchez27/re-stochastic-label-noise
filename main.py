@@ -1,5 +1,4 @@
 import tensorflow as tf
-import runai.ga.keras
 import numpy as np
 import argparse
 import yaml
@@ -79,12 +78,11 @@ def main():
         k=config["save_every_kth_epoch"], checkpoint_path=config["checkpoint_path"]
     )
 
-    model = WideResNet(mean, variance, sigma)
+    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"])
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
     )
-    optimizer = runai.ga.keras.optimizers.Optimizer(optimizer, steps=config["accumulation_steps"])
     model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
 
     model.fit(
