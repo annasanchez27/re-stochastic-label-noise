@@ -77,8 +77,8 @@ def main():
     saver = CheckpointSaver(
         k=config["save_every_kth_epoch"], checkpoint_path=config["checkpoint_path"]
     )
-
-    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"])
+    input_shape = tf.keras.Input(shape=(None, 32, 32, 3))
+    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=[input_shape])
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
