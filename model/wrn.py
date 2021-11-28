@@ -90,6 +90,8 @@ class WideResNet(tfk.Model):
         self.gradient_accumulation = [
             tf.Variable(tf.zeros_like(v, dtype=tf.float32), trainable=False) for v in
             self.trainable_variables]
+        
+        self.sln_mode = sln_mode
 
     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
         strides = [stride] + [1] * (num_blocks - 1)
