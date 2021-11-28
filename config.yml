@@ -1,6 +1,7 @@
 dataset: 'cifar10'
 noise_mode: 'asymmetric'
 noise_rate: 0.1
+sln_mode: 'both'  # Can be [both, noisy, clean]
 path: 'noisy_label_generation/labels'
 
 batch_size: 32

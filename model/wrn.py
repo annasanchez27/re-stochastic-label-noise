@@ -54,7 +54,7 @@ class WideBasic(tfkl.Layer):
 
 class WideResNet(tfk.Model):
     def __init__(
-        self, mean, variance, sigma, ga_steps, inputs, dropout_rate=0, depth=28, widen_factor=2, num_classes=10, *args, **kwargs
+        self, mean, variance, sigma, ga_steps, inputs, sln_mode, dropout_rate=0, depth=28, widen_factor=2, num_classes=10, *args, **kwargs
     ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
@@ -137,8 +137,19 @@ class WideResNet(tfk.Model):
         noisy_loss = self.compiled_loss(noisy_y, logits_noisy_y)
 
         if self.sigma > 0:
-            # mean 0
-            y += self.sigma*tf.random.normal([y.shape[1]])
+            if self.sln_mode == "both":
+                y += self.sigma*tf.random.normal([y.shape[1]])
+            if self.sln_mode == "clean":
+                # Only apply noise to clean samples
+                clean_y += self.sigma * tf.random.normal([clean_y.shape[1]])
+                y = tf.concat([clean_y, noisy_y])
+                x = tf.concat([clean_x, noisy_x])
+            if self.sln_mode == "noisy":
+                # Only apply noise to noisy samples
+                noisy_y += self.sigma * tf.random.normal([noisy_y.shape[1]])
+                y = tf.concat([clean_y, noisy_y])
+                x = tf.concat([clean_x, noisy_x])
+
         with tf.GradientTape() as tape:
             logits = self(x, training=True)
             loss = self.compiled_loss(y, logits)

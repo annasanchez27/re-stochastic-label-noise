@@ -34,6 +34,12 @@ def main():
     parser.add_argument(
         "--perform_theta_experiment", type=bool, help="Specify if theta experiment is run", default=False
     )
+    parser.add_argument(
+        "--perform_sln_experiment", type=bool, help="Specify if sln experiment is run", default=False
+    )
+    parser.add_argument(
+        "--sln_mode", type=str, help="SLN mode for adding noise.", default=config["sln_mode"]
+    )
     args = parser.parse_args()
 
     dataset = args.dataset
@@ -51,9 +57,14 @@ def main():
             sigma = 0.1 if args.noise_mode == "instance_dependent" else 0.2
 
     if args.perform_theta_experiment:
+        wandb_project = "re-stochastic-label-noise-theta_experiment"
         sigma = args.sigma
+    elif args.perform_sln_experiment:
+        wandb_project = "re-stochastic-label-noise-sln_experiment"
+    else:
+        wandb_project = "re-stochastic-label-noise"
 
-    wandb.init(project="re-stochastic-label-noise", entity="sebastiaan")
+    wandb.init(project=wandb_project, entity="sebastiaan")
 
     wandb.config.update({
         "dataset": dataset,
@@ -68,6 +79,7 @@ def main():
         "epochs": config["epochs"],
         "accumulation_steps": config["accumulation_steps"],
         "effective_batch_size": config["accumulation_steps"] * batch_size,
+        "sln_mode": args.sln_mode,
     })
 
     print(
@@ -86,7 +98,7 @@ def main():
     )
     # https://stackoverflow.com/questions/66472201/gradient-accumulation-with-custom-model-fit-in-tf-keras
     input_shape = (None, 32, 32, 3)
-    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=input_shape)
+    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=input_shape, sln_mode=args.sln_mode)
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
