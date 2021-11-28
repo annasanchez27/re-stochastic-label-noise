@@ -31,6 +31,9 @@ def main():
     parser.add_argument(
         "--use_sln", type=bool, help="Specify if SLN should be used", default=False
     )
+    parser.add_argument(
+        "--perform_theta_experiment", type=bool, help="Specify if theta experiment is run", default=False
+    )
     args = parser.parse_args()
 
     dataset = args.dataset
@@ -46,6 +49,9 @@ def main():
             sigma = 1.0 if args.noise_mode == "symmetric" else 0.5
         if dataset == "cifar100":
             sigma = 0.1 if args.noise_mode == "instance_dependent" else 0.2
+
+    if args.perform_theta_experiment:
+        sigma = args.sigma
 
     wandb.init(project="re-stochastic-label-noise", entity="sebastiaan")
 
