@@ -34,6 +34,7 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
 
         train_images[index1] = cifar100[index2]
 
+        ground_truth_train_labels[index1] += 1
         train_labels = np.squeeze(train_labels)
 
     elif noise_mode in {"symmetric", "asymmetric", "instance_dependent"}:
