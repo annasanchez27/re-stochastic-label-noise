@@ -54,7 +54,8 @@ class WideBasic(tfkl.Layer):
 
 class WideResNet(tfk.Model):
     def __init__(
-        self, mean, variance, sigma, ga_steps, inputs, sln_mode, dropout_rate=0, depth=28, widen_factor=2, num_classes=10, *args, **kwargs
+            self, mean, variance, sigma, ga_steps, inputs, sln_mode, dropout_rate=0, depth=28,
+            widen_factor=2, num_classes=10, *args, **kwargs
     ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
@@ -90,7 +91,7 @@ class WideResNet(tfk.Model):
         self.gradient_accumulation = [
             tf.Variable(tf.zeros_like(v, dtype=tf.float32), trainable=False) for v in
             self.trainable_variables]
-        
+
         self.sln_mode = sln_mode
 
     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
@@ -140,17 +141,17 @@ class WideResNet(tfk.Model):
 
         if self.sigma > 0:
             if self.sln_mode == "both":
-                y += self.sigma*tf.random.normal([y.shape[1]])
+                y += self.sigma * tf.random.normal([y.shape[1]])
             if self.sln_mode == "clean":
                 # Only apply noise to clean samples
                 clean_y += self.sigma * tf.random.normal([clean_y.shape[1]])
-                y = tf.concat([clean_y, noisy_y])
-                x = tf.concat([clean_x, noisy_x])
+                y = tf.concat([clean_y, noisy_y], axis=0)
+                x = tf.concat([clean_x, noisy_x], axis=0)
             if self.sln_mode == "noisy":
                 # Only apply noise to noisy samples
                 noisy_y += self.sigma * tf.random.normal([noisy_y.shape[1]])
-                y = tf.concat([clean_y, noisy_y])
-                x = tf.concat([clean_x, noisy_x])
+                y = tf.concat([clean_y, noisy_y], axis=0)
+                x = tf.concat([clean_x, noisy_x], axis=0)
 
         with tf.GradientTape() as tape:
             logits = self(x, training=True)
@@ -168,7 +169,8 @@ class WideResNet(tfk.Model):
             self.gradient_accumulation[i].assign_add(gradients[i])
 
         # If n_acum_step reach the n_gradients then we apply accumulated gradients to update the variables otherwise do nothing
-        tf.cond(tf.equal(self.n_acum_step, self.n_gradients), self.apply_accu_gradients, lambda: None)
+        tf.cond(tf.equal(self.n_acum_step, self.n_gradients), self.apply_accu_gradients,
+                lambda: None)
 
         # self.optimizer.apply_gradients(zip(gradients, trainable_vars))
         return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss}
@@ -180,8 +182,8 @@ class WideResNet(tfk.Model):
         # reset
         self.n_acum_step.assign(0)
         for i in range(len(self.gradient_accumulation)):
-            self.gradient_accumulation[i].assign(tf.zeros_like(self.trainable_variables[i], dtype=tf.float32))
-
+            self.gradient_accumulation[i].assign(
+                tf.zeros_like(self.trainable_variables[i], dtype=tf.float32))
 
     '''
     def test_step(self, data):
