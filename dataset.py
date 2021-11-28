@@ -19,13 +19,7 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
     else:
         raise ValueError(f"incorrect dataset provided: {dataset}")
 
-    # normalize between 0 and 1
-    train_images, test_images = train_images / 255.0, test_images / 255.0
-
-    # only way to imitate the random crop effect that pytorch does, cause tf does not do padding
-    train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
-
-    ground_truth_train_labels = train_labels
+    ground_truth_train_labels = np.array(train_labels)
 
     if noise_mode == "openset" and dataset == "cifar10":
         # replace part of CIFAR-10 images with CIFAR-100 images as done in the original code
@@ -40,6 +34,8 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
 
         train_images[index1] = cifar100[index2]
 
+        train_labels = np.squeeze(train_labels)
+
     elif noise_mode in {"symmetric", "asymmetric", "instance_dependent"}:
         # read noisy labels and change the train_labels
         labels_path = f"{path}/{dataset}/{noise_mode}/labels_{noise_rate}.npy"
@@ -49,6 +45,12 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
         train_labels = np.squeeze(train_labels)
     else:
         raise ValueError(f"Incorrect noise_mode provided: {noise_mode}")
+
+    # normalize between 0 and 1
+    train_images, test_images = train_images / 255.0, test_images / 255.0
+
+    # only way to imitate the random crop effect that pytorch does, cause tf does not do padding
+    train_images = tf.image.resize_with_crop_or_pad(train_images, 40, 40).numpy()
 
     print(f"accuracy: {accuracy_score(train_labels, ground_truth_train_labels)}")
 
