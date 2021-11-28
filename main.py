@@ -37,6 +37,7 @@ def main():
     mean = config[dataset]["mean"]
     variance = np.square(config[dataset]["std"])
     batch_size = config["batch_size"]
+    sigma = config["sigma"]
 
     if args.use_sln:
         # On CIFAR-10, we use σ = 1 for symmetric noise and σ = 0.5 otherwise; On CIFAR-100, we
