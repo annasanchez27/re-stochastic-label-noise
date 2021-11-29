@@ -15,6 +15,9 @@ from model.utils import CheckpointSaver
 def main():
     config = yaml.load(Path("config.yml").read_text(), Loader=yaml.SafeLoader)
 
+    assert('drive' in config["checkpoint_path"].split('/'), "in a colab session we must save the checkpoints in drive "
+                                                            "or we will lose them!")
+
     parser = argparse.ArgumentParser(description="re-SLN")
     parser.add_argument(
         "--dataset", type=str, help="Dataset to use.", default=config["dataset"]
@@ -39,6 +42,10 @@ def main():
     )
     parser.add_argument(
         "--sln_mode", type=str, help="SLN mode for adding noise.", default=config["sln_mode"]
+    )
+    parser.add_argument(
+        "--start_checkpoint", type=str, help="Epoch number to start training from that checkpoint "
+                                             "-1 to not use it.", default=config["sln_mode"]
     )
     args = parser.parse_args()
 
@@ -110,19 +117,27 @@ def main():
     )
     model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
 
+    if args.start_checkpoint != -1:
+        path = f'{config["checkpoint_path"]}/model_checkpoint_{args.start_checkpoint}.tf'
+        model.load_weights(path)
+        initial_epoch = args.start_checkpoint + 1
+    else:
+        initial_epoch = 0
+
+
     model.fit(
         train_images,
         train_labels,
         validation_data=(test_images, test_labels),
         validation_freq=2,
         callbacks=[saver, WandbCallback(monitor="train_loss")],
+        initial_epoch=initial_epoch,
         epochs=config["epochs"],
         batch_size=batch_size,
         shuffle=True,
     )
     model.save_weights(
-        f"{config['checkpoint_path']}/final_model_{dataset}_{args.noise_mode}_{args.noise_rate}_{sigma}",
-        save_format="h5",
+        f"{config['checkpoint_path']}/final_model_{dataset}_{args.noise_mode}_{args.noise_rate}_{sigma}.tf"
     )
 
 
