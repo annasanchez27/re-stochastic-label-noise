@@ -44,7 +44,7 @@ def main():
         "--sln_mode", type=str, help="SLN mode for adding noise.", default=config["sln_mode"]
     )
     parser.add_argument(
-        "--start_checkpoint", type=str, help="Epoch number to start training from that checkpoint "
+        "--start_checkpoint", type=int, help="Epoch number to start training from that checkpoint "
                                              "-1 to not use it.", default=config["sln_mode"]
     )
     args = parser.parse_args()
@@ -120,10 +120,9 @@ def main():
     if args.start_checkpoint != -1:
         path = f'{config["checkpoint_path"]}/model_checkpoint_{args.start_checkpoint}.tf'
         model.load_weights(path)
-        initial_epoch = args.start_checkpoint + 1
+        initial_epoch = args.start_checkpoint
     else:
         initial_epoch = 0
-
 
     model.fit(
         train_images,
