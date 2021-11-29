@@ -48,6 +48,11 @@ def main():
     batch_size = config["batch_size"]
     sigma = config["sigma"]
 
+    if dataset == "cifar10":
+        num_classes = 10
+    elif dataset == "cifar100":
+        num_classes = 100
+
     if args.use_sln:
         # On CIFAR-10, we use σ = 1 for symmetric noise and σ = 0.5 otherwise; On CIFAR-100, we
         # use σ = 0.1 for instance-dependent noise and σ = 0.2 otherwise.
@@ -98,7 +103,7 @@ def main():
     )
     # https://stackoverflow.com/questions/66472201/gradient-accumulation-with-custom-model-fit-in-tf-keras
     input_shape = (None, 32, 32, 3)
-    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=input_shape, sln_mode=args.sln_mode)
+    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=input_shape, sln_mode=args.sln_mode, num_classes=num_classes)
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
