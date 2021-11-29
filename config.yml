@@ -21,5 +21,5 @@ cifar100:
   std: [0.2675, 0.2565, 0.2761]
 
 save_every_kth_epoch: 5
-checkpoint_path: "checkpoints"
+checkpoint_path: "../drive/MyDrive/0Master/0DL_adv/checkpoints"
 start_checkpoint: -1
