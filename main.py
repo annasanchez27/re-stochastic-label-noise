@@ -45,7 +45,7 @@ def main():
     )
     parser.add_argument(
         "--start_checkpoint", type=int, help="Epoch number to start training from that checkpoint "
-                                             "-1 to not use it.", default=config["sln_mode"]
+                                             "-1 to not use it.", default=config["start_checkpoint"]
     )
     args = parser.parse_args()
 
