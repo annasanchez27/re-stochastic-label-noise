@@ -7,11 +7,13 @@ from sklearn.metrics import accuracy_score
 
 def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
     if dataset == "cifar10":
+        num_classes = 10
         (
             (train_images, train_labels),
             (test_images, test_labels),
         ) = datasets.cifar10.load_data()
     elif dataset == "cifar100":
+        num_classes = 100
         (
             (train_images, train_labels),
             (test_images, test_labels),
@@ -57,23 +59,16 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
 
     train_labels = np.column_stack(
         (
-            tf.one_hot(train_labels, 10),
-            tf.one_hot(np.squeeze(ground_truth_train_labels), 10),
+            tf.one_hot(train_labels, num_classes),
+            tf.one_hot(np.squeeze(ground_truth_train_labels), num_classes),
         )
     )
-    test_labels = tf.one_hot(np.squeeze(test_labels), 10)
-
-    '''
-    train_images, val_images, train_labels, val_labels = train_test_split(
-        train_images, train_labels, test_size=0.1, random_state=42
-    )
-    '''
+    test_labels = tf.one_hot(np.squeeze(test_labels), num_classes)
 
 
     train_images, train_labels = make_divisible_by_batch(
         train_images, train_labels, batch_size
     )
-    #val_images, val_labels = make_divisible_by_batch(val_images, val_labels, batch_size)
     test_images, test_labels = make_divisible_by_batch(
         test_images, test_labels, batch_size
     )
