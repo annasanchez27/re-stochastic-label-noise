@@ -60,6 +60,7 @@ class WideResNet(tfk.Model):
         super(WideResNet, self).__init__()
         self.in_planes = 16
         self.sigma = sigma
+        self.num_classes = num_classes
 
         assert (depth - 4) % 6 == 0, "Wide-resnet depth should be 6n+4"
         n = (depth - 4) // 6
@@ -124,8 +125,8 @@ class WideResNet(tfk.Model):
         self.n_acum_step.assign_add(1)
 
         x, labels = data
-        y = labels[:, :10]
-        ground_truth = tf.cast(tf.math.argmax(labels[:, 10:], axis=1), tf.float32)
+        y = labels[:, :self.num_classes]
+        ground_truth = tf.cast(tf.math.argmax(labels[:, self.num_classes:], axis=1), tf.float32)
         labels_idx = tf.math.argmax(y, axis=1)
         labels_idx = tf.cast(labels_idx, tf.float32)
 
