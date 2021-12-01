@@ -142,7 +142,7 @@ class WideResNet(tfk.Model):
 
         if self.sigma > 0:
             if self.sln_mode == "both":
-                y += self.sigma * tf.random.normal([y.shape[1]])
+                y += self.sigma * tf.random.normal(y.shape)
             if self.sln_mode == "clean":
                 # Only apply noise to clean samples
                 clean_y += self.sigma * tf.random.normal([clean_y.shape[1]])
