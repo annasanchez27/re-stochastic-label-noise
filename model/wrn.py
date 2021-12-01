@@ -79,7 +79,7 @@ class WideResNet(tfk.Model):
         self.layer2 = self._wide_layer(WideBasic, nStages[2], n, dropout_rate, stride=2)
         self.layer3 = self._wide_layer(WideBasic, nStages[3], n, dropout_rate, stride=2)
         self.bn1 = tfkl.BatchNormalization(momentum=0.9)
-        self.linear = tfkl.Dense(num_classes)
+        self.linear = tfkl.Dense(num_classes + 1)  # extra output for variance parameter
         self.flatten = tfkl.Flatten()
 
         self.cat_accuracy = tfk.metrics.CategoricalAccuracy()
@@ -119,7 +119,8 @@ class WideResNet(tfk.Model):
         if get_feat:
             return out
         else:
-            return self.linear(out)
+            out = self.linear(out)
+            return out[:self.num_classes], out[self.num_classes:]
 
     def train_step(self, data):
         self.n_acum_step.assign_add(1)
@@ -155,7 +156,7 @@ class WideResNet(tfk.Model):
                 x = tf.concat([clean_x, noisy_x], axis=0)
 
         with tf.GradientTape() as tape:
-            logits = self(x, training=True)
+            logits, variance = self(x, training=True)
             loss = self.compiled_loss(y, logits)
 
             lossL2 = tf.add_n([tf.nn.l2_loss(v) for v in self.trainable_variables
