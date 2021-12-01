@@ -12,7 +12,7 @@ class CheckpointSaver(tf.keras.callbacks.Callback):
         self.checkpoint_path = checkpoint_path
 
     def on_epoch_end(self, epoch, logs={}):
-        if epoch % self.k == 0:
+        if epoch % self.k == 0 and epoch != 0:
             self.model.save_weights(f"{self.checkpoint_path}/model_checkpoint_{epoch}", save_format="h5", overwrite=True)
 
             if os.path.exists(

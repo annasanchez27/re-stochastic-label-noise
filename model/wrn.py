@@ -54,12 +54,25 @@ class WideBasic(tfkl.Layer):
 
 class WideResNet(tfk.Model):
     def __init__(
-            self, mean, variance, sigma, ga_steps, inputs, sln_mode, dropout_rate=0, depth=28,
-            widen_factor=2, num_classes=10, *args, **kwargs
+        self,
+        mean,
+        variance,
+        sigma,
+        ga_steps,
+        inputs,
+        sln_mode,
+        dropout_rate=0,
+        depth=28,
+        widen_factor=2,
+        num_classes=10,
+        use_trainable_variance=False,
+        *args,
+        **kwargs
     ):
         super(WideResNet, self).__init__()
         self.in_planes = 16
         self.sigma = sigma
+        self.use_trainable_variance = use_trainable_variance
         self.num_classes = num_classes
 
         assert (depth - 4) % 6 == 0, "Wide-resnet depth should be 6n+4"
@@ -90,8 +103,9 @@ class WideResNet(tfk.Model):
         self.n_gradients = tf.constant(ga_steps, dtype=tf.int32)
         self.n_acum_step = tf.Variable(0, dtype=tf.int32, trainable=False)
         self.gradient_accumulation = [
-            tf.Variable(tf.zeros_like(v, dtype=tf.float32), trainable=False) for v in
-            self.trainable_variables]
+            tf.Variable(tf.zeros_like(v, dtype=tf.float32), trainable=False)
+            for v in self.trainable_variables
+        ]
 
         self.sln_mode = sln_mode
 
@@ -105,7 +119,7 @@ class WideResNet(tfk.Model):
 
         return tf.keras.Sequential(layers)
 
-    def call(self, x, get_feat=False):
+    def call(self, x, get_feat=False, training=False):
         out = self.data_augmentation(x)
         out = self.normalize(out)
         out = self.conv1(out)
@@ -118,16 +132,21 @@ class WideResNet(tfk.Model):
 
         if get_feat:
             return out
+        elif training and self.use_trainable_variance:
+            out = self.linear(out)
+            return out[:, : self.num_classes], out[:, self.num_classes :]
         else:
             out = self.linear(out)
-            return out[:self.num_classes], out[self.num_classes:]
+            return out[:, : self.num_classes]
 
     def train_step(self, data):
         self.n_acum_step.assign_add(1)
 
         x, labels = data
-        y = labels[:, :self.num_classes]
-        ground_truth = tf.cast(tf.math.argmax(labels[:, self.num_classes:], axis=1), tf.float32)
+        y = labels[:, : self.num_classes]
+        ground_truth = tf.cast(
+            tf.math.argmax(labels[:, self.num_classes :], axis=1), tf.float32
+        )
         labels_idx = tf.math.argmax(y, axis=1)
         labels_idx = tf.cast(labels_idx, tf.float32)
 
@@ -142,25 +161,41 @@ class WideResNet(tfk.Model):
         noisy_loss = self.compiled_loss(noisy_y, logits_noisy_y)
 
         if self.sigma > 0:
-            if self.sln_mode == "both":
-                y += self.sigma * tf.random.normal([y.shape[1]])
             if self.sln_mode == "clean":
-                # Only apply noise to clean samples
-                clean_y += self.sigma * tf.random.normal([clean_y.shape[1]])
-                y = tf.concat([clean_y, noisy_y], axis=0)
                 x = tf.concat([clean_x, noisy_x], axis=0)
             if self.sln_mode == "noisy":
-                # Only apply noise to noisy samples
-                noisy_y += self.sigma * tf.random.normal([noisy_y.shape[1]])
-                y = tf.concat([clean_y, noisy_y], axis=0)
                 x = tf.concat([clean_x, noisy_x], axis=0)
 
         with tf.GradientTape() as tape:
-            logits, variance = self(x, training=True)
+            if self.use_trainable_variance:
+                logits, variance = self(x, training=True)
+            else:
+                logits = self(x, training=True)
+                variance = self.sigma
+            if self.sigma > 0:
+                if self.sln_mode == "both":
+                    y += variance * tf.random.normal(y.shape)
+                if self.sln_mode == "clean":
+                    # Only apply noise to clean samples
+                    clean_y += variance * tf.random.normal(clean_y.shape)
+                    y = tf.concat([clean_y, noisy_y], axis=0)
+                if self.sln_mode == "noisy":
+                    # Only apply noise to noisy samples
+                    noisy_y += variance * tf.random.normal(noisy_y.shape)
+                    y = tf.concat([clean_y, noisy_y], axis=0)
+
             loss = self.compiled_loss(y, logits)
 
-            lossL2 = tf.add_n([tf.nn.l2_loss(v) for v in self.trainable_variables
-                               if 'bias' not in v.name]) * 0.0005
+            lossL2 = (
+                tf.add_n(
+                    [
+                        tf.nn.l2_loss(v)
+                        for v in self.trainable_variables
+                        if "bias" not in v.name
+                    ]
+                )
+                * 0.0005
+            )
 
             loss += lossL2
 
@@ -171,23 +206,29 @@ class WideResNet(tfk.Model):
             self.gradient_accumulation[i].assign_add(gradients[i])
 
         # If n_acum_step reach the n_gradients then we apply accumulated gradients to update the variables otherwise do nothing
-        tf.cond(tf.equal(self.n_acum_step, self.n_gradients), self.apply_accu_gradients,
-                lambda: None)
+        tf.cond(
+            tf.equal(self.n_acum_step, self.n_gradients),
+            self.apply_accu_gradients,
+            lambda: None,
+        )
 
         # self.optimizer.apply_gradients(zip(gradients, trainable_vars))
         return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss}
 
     def apply_accu_gradients(self):
         # apply accumulated gradients
-        self.optimizer.apply_gradients(zip(self.gradient_accumulation, self.trainable_variables))
+        self.optimizer.apply_gradients(
+            zip(self.gradient_accumulation, self.trainable_variables)
+        )
 
         # reset
         self.n_acum_step.assign(0)
         for i in range(len(self.gradient_accumulation)):
             self.gradient_accumulation[i].assign(
-                tf.zeros_like(self.trainable_variables[i], dtype=tf.float32))
+                tf.zeros_like(self.trainable_variables[i], dtype=tf.float32)
+            )
 
-    '''
+    """
     def test_step(self, data):
         x, labels = data
         y = labels[:, :10]
@@ -220,4 +261,4 @@ class WideResNet(tfk.Model):
         self.cat_accuracy.reset_state()
 
         return {"acc": acc, "noisy_accuracy": acc_noisy, "clean_accuracy": acc_clean}
-    '''
+    """

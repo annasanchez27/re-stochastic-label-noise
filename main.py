@@ -32,13 +32,28 @@ def main():
         "--use_sln", type=bool, help="Specify if SLN should be used", default=False
     )
     parser.add_argument(
-        "--perform_theta_experiment", type=bool, help="Specify if theta experiment is run", default=False
+        "--perform_theta_experiment",
+        type=bool,
+        help="Specify if theta experiment is run",
+        default=False,
     )
     parser.add_argument(
-        "--perform_sln_experiment", type=bool, help="Specify if sln experiment is run", default=False
+        "--perform_sln_experiment",
+        type=bool,
+        help="Specify if sln experiment is run",
+        default=False,
     )
     parser.add_argument(
-        "--sln_mode", type=str, help="SLN mode for adding noise.", default=config["sln_mode"]
+        "--sln_mode",
+        type=str,
+        help="SLN mode for adding noise.",
+        default=config["sln_mode"],
+    )
+    parser.add_argument(
+        "--trainable_variance",
+        type=bool,
+        help="SLN mode for adding noise.",
+        default=False,
     )
     args = parser.parse_args()
 
@@ -71,24 +86,28 @@ def main():
 
     wandb.init(project=wandb_project, entity="sebastiaan")
 
-    wandb.config.update({
-        "dataset": dataset,
-        "noise_rate": args.noise_rate,
-        "noise_mode": args.noise_mode,
-        "use_sln": args.use_sln,
-        "sigma": sigma,
-        "batch_size": batch_size,
-        "learning_rate": config["learning_rate"],
-        "momentum": config["momentum"],
-        "weight_decay": config["weight_decay"],
-        "epochs": config["epochs"],
-        "accumulation_steps": config["accumulation_steps"],
-        "effective_batch_size": config["accumulation_steps"] * batch_size,
-        "sln_mode": args.sln_mode,
-    })
+    wandb.config.update(
+        {
+            "dataset": dataset,
+            "noise_rate": args.noise_rate,
+            "noise_mode": args.noise_mode,
+            "use_sln": args.use_sln,
+            "sigma": sigma,
+            "batch_size": batch_size,
+            "learning_rate": config["learning_rate"],
+            "momentum": config["momentum"],
+            "weight_decay": config["weight_decay"],
+            "epochs": config["epochs"],
+            "accumulation_steps": config["accumulation_steps"],
+            "effective_batch_size": config["accumulation_steps"] * batch_size,
+            "sln_mode": args.sln_mode,
+            "trainable_variance": args.trainable_variance,
+        }
+    )
 
     print(
-        f"Training model on dataset: {dataset}, with noise mode: {args.noise_mode}, with noise rate: {args.noise_rate} and sigma: {sigma}")
+        f"Training model on dataset: {dataset}, with noise mode: {args.noise_mode}, with noise rate: {args.noise_rate} and sigma: {sigma}"
+    )
 
     (train_images, train_labels), (test_images, test_labels) = get_dataset(
         dataset,
@@ -103,7 +122,16 @@ def main():
     )
     # https://stackoverflow.com/questions/66472201/gradient-accumulation-with-custom-model-fit-in-tf-keras
     input_shape = (None, 32, 32, 3)
-    model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=input_shape, sln_mode=args.sln_mode, num_classes=num_classes)
+    model = WideResNet(
+        mean,
+        variance,
+        sigma,
+        ga_steps=config["accumulation_steps"],
+        inputs=input_shape,
+        sln_mode=args.sln_mode,
+        num_classes=num_classes,
+        use_trainable_variance=args.trainable_variance,
+    )
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
