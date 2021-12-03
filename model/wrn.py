@@ -134,7 +134,7 @@ class WideResNet(tfk.Model):
             return out
         elif training and self.use_trainable_variance:
             out = self.linear(out)
-            return out[:, : self.num_classes], out[:, self.num_classes :]
+            return out[:, : self.num_classes], out[:, self.num_classes:]
         else:
             out = self.linear(out)
             return out[:, : self.num_classes]
@@ -177,11 +177,13 @@ class WideResNet(tfk.Model):
                     y += variance * tf.random.normal(y.shape)
                 if self.sln_mode == "clean":
                     # Only apply noise to clean samples
-                    clean_y += variance * tf.random.normal(clean_y.shape)
+                    shape = tf.shape(clean_y)
+                    clean_y += variance * tf.random.normal(shape=(shape[0], shape[1]))
                     y = tf.concat([clean_y, noisy_y], axis=0)
                 if self.sln_mode == "noisy":
                     # Only apply noise to noisy samples
-                    noisy_y += variance * tf.random.normal(noisy_y.shape)
+                    shape = tf.shape(noisy_y)
+                    noisy_y += variance * tf.random.normal(shape=(shape[0], shape[1]))
                     y = tf.concat([clean_y, noisy_y], axis=0)
 
             loss = self.compiled_loss(y, logits)
