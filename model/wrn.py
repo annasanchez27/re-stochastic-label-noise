@@ -169,8 +169,6 @@ class WideResNet(tfk.Model):
         with tf.GradientTape() as tape:
             if self.use_trainable_variance:
                 logits, variance = self(x, training=True)
-                print(variance.shape)
-                print(y.shape)
             else:
                 logits = self(x, training=True)
                 variance = self.sigma
