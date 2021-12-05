@@ -81,6 +81,8 @@ def main():
         sigma = args.sigma
     elif args.perform_sln_experiment:
         wandb_project = "re-stochastic-label-noise-sln_experiment"
+    elif args.trainable_variance:
+        wandb_project = "re-stochastic-label-trainable_vars"
     else:
         wandb_project = "re-stochastic-label-noise"
 
