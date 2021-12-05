@@ -134,7 +134,11 @@ class WideResNet(tfk.Model):
             return out
         elif training and self.use_trainable_variance:
             out = self.linear(out)
-            return out[:, : self.num_classes], out[:, self.num_classes:]
+            logits, variance = out[:, : self.num_classes], out[:, self.num_classes:]
+            variance = tf.clip_by_value(
+                variance, clip_value_min=0.0, clip_value_max=1.0
+            )
+            return logits, variance
         else:
             out = self.linear(out)
             return out[:, : self.num_classes]
