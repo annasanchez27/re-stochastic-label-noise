@@ -189,8 +189,8 @@ class WideResNet(tfk.Model):
                     shape = tf.shape(noisy_y)
                     noisy_y += variance * tf.random.normal(shape=(shape[0], shape[1]))
                     y = tf.concat([clean_y, noisy_y], axis=0)
-
-            loss = self.compiled_loss(y, logits)
+            y_pred = tf.nn.log_softmax(logits)
+            loss = self.compiled_loss(y, y_pred)
 
             lossL2 = (
                 tf.add_n(

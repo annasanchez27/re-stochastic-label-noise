@@ -134,7 +134,7 @@ def main():
         num_classes=num_classes,
         use_trainable_variance=args.trainable_variance,
     )
-    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    loss = tf.keras.losses.CategoricalCrossentropy()
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
     )
