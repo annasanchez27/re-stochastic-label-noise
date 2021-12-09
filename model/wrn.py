@@ -137,8 +137,10 @@ class WideResNet(tfk.Model):
 
         logits_noisy_y = self(noisy_x, training=False)
         logits_clean_y = self(clean_x, training=False)
-        clean_loss = self.compiled_loss(clean_y, logits_clean_y)
-        noisy_loss = self.compiled_loss(noisy_y, logits_noisy_y)
+        clean_loss = -tf.math.reduce_mean(tf.math.reduce_sum(tf.nn.log_softmax(logits_clean_y, axis=1) * clean_y, axis=1))
+        noisy_loss = -tf.math.reduce_mean(tf.math.reduce_sum(tf.nn.log_softmax(logits_noisy_y, axis=1) * noisy_y, axis=1))
+        #clean_loss = self.compiled_loss(clean_y, logits_clean_y)
+        #noisy_loss = self.compiled_loss(noisy_y, logits_noisy_y)
 
         if self.sigma > 0:
             if self.sln_mode == "both":
@@ -156,7 +158,8 @@ class WideResNet(tfk.Model):
 
         with tf.GradientTape() as tape:
             logits = self(x, training=True)
-            loss = self.compiled_loss(y, logits)
+            loss = -tf.math.reduce_mean(tf.math.reduce_sum(tf.nn.log_softmax(logits, axis=1) * y, axis=1))
+            #loss = self.compiled_loss(y, logits)
 
             lossL2 = tf.add_n([tf.nn.l2_loss(v) for v in self.trainable_variables
                                if 'bias' not in v.name]) * 0.0005

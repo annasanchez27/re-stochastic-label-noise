@@ -74,7 +74,7 @@ def get_dataset(dataset, noise_mode, noise_rate, path, batch_size):
     )
 
     return (
-        (train_images, train_labels),
+        (train_images[:500], train_labels[:500]),
         (test_images, test_labels),
     )
 

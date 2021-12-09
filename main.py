@@ -111,11 +111,11 @@ def main():
     # https://stackoverflow.com/questions/66472201/gradient-accumulation-with-custom-model-fit-in-tf-keras
     input_shape = (None, 32, 32, 3)
     model = WideResNet(mean, variance, sigma, ga_steps=config["accumulation_steps"], inputs=input_shape, sln_mode=args.sln_mode, num_classes=num_classes)
-    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
     )
-    model.compile(optimizer=optimizer, loss=loss, metrics=["accuracy"])
+    model.compile(optimizer=optimizer, metrics=["accuracy"])
 
     if args.start_checkpoint != -1:
         path = f'{config["checkpoint_path"]}/model_checkpoint_{args.start_checkpoint}.tf'
