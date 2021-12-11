@@ -169,8 +169,8 @@ class WideResNet(tfk.Model):
 
         logits_noisy_y = self(noisy_x, training=False)
         logits_clean_y = self(clean_x, training=False)
-        clean_loss = calculate_loss(logits_clean_y, clean_y, self.beta)
-        noisy_loss = calculate_loss(logits_noisy_y, noisy_y, self.beta)
+        clean_loss = calculate_loss(logits_clean_y, clean_y, self.beta, self.use_trainable_variance)
+        noisy_loss = calculate_loss(logits_noisy_y, noisy_y, self.beta, self.use_trainable_variance)
 
         if self.sigma > 0:
             if self.sln_mode == "clean":
