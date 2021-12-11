@@ -10,6 +10,12 @@ def conv3x3(out_planes, stride=1):
     )
 
 
+def calculate_loss(logits, y, beta, use_trainable_variance):
+    ce = -tf.math.reduce_mean(tf.math.reduce_sum(tf.nn.log_softmax(logits, axis=1) * y, axis=1))
+    entropy = -tf.math.reduce_mean(tf.math.reduce_sum(tf.nn.log_softmax(logits, axis=1) * logits, axis=1))
+    return ce - beta * entropy if use_trainable_variance else ce
+
+
 class WideBasic(tfkl.Layer):
     def __init__(self, in_planes, out_planes, dropout_rate, stride=1):
         """
@@ -66,6 +72,7 @@ class WideResNet(tfk.Model):
         widen_factor=2,
         num_classes=10,
         use_trainable_variance=False,
+        beta=1.0,
         *args,
         **kwargs
     ):
@@ -161,8 +168,8 @@ class WideResNet(tfk.Model):
 
         logits_noisy_y = self(noisy_x, training=False)
         logits_clean_y = self(clean_x, training=False)
-        clean_loss = self.compiled_loss(clean_y, logits_clean_y)
-        noisy_loss = self.compiled_loss(noisy_y, logits_noisy_y)
+        clean_loss = calculate_loss(logits_clean_y, clean_y, self.beta)
+        noisy_loss = calculate_loss(logits_noisy_y, noisy_y, self.beta)
 
         if self.sigma > 0:
             if self.sln_mode == "clean":
@@ -190,7 +197,8 @@ class WideResNet(tfk.Model):
                     noisy_y += variance * tf.random.normal(shape=(shape[0], shape[1]))
                     y = tf.concat([clean_y, noisy_y], axis=0)
 
-            loss = self.compiled_loss(y, logits)
+            #loss = self.compiled_loss(y, logits)
+            loss = calculate_loss(logits, y, self.beta, self.use_trainable_variance)
 
             lossL2 = (
                 tf.add_n(

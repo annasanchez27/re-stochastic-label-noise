@@ -55,6 +55,12 @@ def main():
         help="SLN mode for adding noise.",
         default=False,
     )
+    parser.add_argument(
+        "--beta",
+        type=float,
+        help="SLN mode for adding noise.",
+        default=1.0,
+    )
     args = parser.parse_args()
 
     dataset = args.dataset
