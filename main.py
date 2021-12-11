@@ -139,6 +139,7 @@ def main():
         sln_mode=args.sln_mode,
         num_classes=num_classes,
         use_trainable_variance=args.trainable_variance,
+        beta=args.beta,
     )
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(

@@ -81,6 +81,7 @@ class WideResNet(tfk.Model):
         self.sigma = sigma
         self.use_trainable_variance = use_trainable_variance
         self.num_classes = num_classes
+        self.beta = beta
 
         assert (depth - 4) % 6 == 0, "Wide-resnet depth should be 6n+4"
         n = (depth - 4) // 6
