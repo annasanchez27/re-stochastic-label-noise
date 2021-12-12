@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras as tfk
 import tensorflow.keras.layers as tfkl
 from tensorflow.keras.layers.experimental import preprocessing
+import wandb
 
 
 def conv3x3(out_planes, stride=1):
@@ -229,9 +230,9 @@ class WideResNet(tfk.Model):
             self.apply_accu_gradients,
             lambda: None,
         )
-
+        wandb.log({"params": self.learnable_class_variance})
         # self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss, "params": self.learnable_class_variance}
+        return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss}
 
     def apply_accu_gradients(self):
         # apply accumulated gradients
