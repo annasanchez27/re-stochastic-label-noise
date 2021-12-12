@@ -103,6 +103,8 @@ class WideResNet(tfk.Model):
         self.linear = tfkl.Dense(num_classes + 1)  # extra output for variance parameter
         self.flatten = tfkl.Flatten()
 
+        self.learnable_class_variance = tf.Variable(tf.random.normal(shape=[10], mean=0.5, stddev=0.5), trainable=True)
+
         self.cat_accuracy = tfk.metrics.CategoricalAccuracy()
 
         self.build(inputs)
@@ -186,7 +188,8 @@ class WideResNet(tfk.Model):
                 variance = self.sigma
             if self.sigma > 0:
                 if self.sln_mode == "both":
-                    y += variance * tf.random.normal(y.shape)
+                    y += self.learnable_class_variance * tf.random.normal(y.shape)
+                    # y += variance * tf.random.normal(y.shape)
                 if self.sln_mode == "clean":
                     # Only apply noise to clean samples
                     shape = tf.shape(clean_y)
