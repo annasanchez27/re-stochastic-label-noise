@@ -230,9 +230,9 @@ class WideResNet(tfk.Model):
             self.apply_accu_gradients,
             lambda: None,
         )
-        wandb.log({"params": self.learnable_class_variance.numpy()})
+
         # self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss}
+        return {"loss": loss, "clean_loss": clean_loss, "noisy_loss": noisy_loss, "params": self.learnable_class_variance}
 
     def apply_accu_gradients(self):
         # apply accumulated gradients
