@@ -141,7 +141,7 @@ def main():
         use_trainable_variance=args.trainable_variance,
         beta=args.beta,
     )
-    wandb.watch(model)
+    
     loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
     optimizer = tf.keras.optimizers.SGD(
         momentum=config["momentum"], learning_rate=config["learning_rate"]
